@@ -1,0 +1,157 @@
+# MACE Prediction Configuration File
+
+# Data Configuration
+data:
+  data_dir: "data"
+  main_file: "proteomics_v4.1_HCM_CUIMC(with sample ID, with MACE).xlsx"
+  reference_file: "proteomics_v4.0_HCM_CUIMC(with sample ID, with MACE).xlsx"
+  train_file: "train_data.xlsx"
+  test_file: "test_data.xlsx"
+  
+  # Target column
+  target_column: "mace"
+  
+  # Preprocessing
+  test_size: 0.33
+  stratify_columns: ["sex", "mace"]
+  random_state: 42
+
+# Feature Configuration
+features:
+  # Organ age features
+  organ_list:
+    - "Adipose"
+    - "Artery" 
+    - "Brain"
+    - "Conventional"
+    - "Heart"
+    - "Immune"
+    - "Intestine"
+    - "Kidney"
+    - "Liver"
+    - "Lung"
+    - "Muscle"
+    - "Organismal"
+    - "Pancreas"
+  
+  # Organ-specific features (excluding Conventional and Organismal)
+  organ_list_specific:
+    - "Adipose"
+    - "Artery"
+    - "Brain"
+    - "Heart"
+    - "Immune"
+    - "Intestine"
+    - "Kidney"
+    - "Liver"
+    - "Lung"
+    - "Muscle"
+    - "Pancreas"
+
+# Model Configuration
+models:
+  # Random Forest
+  random_forest:
+    enabled: true
+    search_space:
+      n_estimators: [100, 2000]
+      max_depth: [2, 150]
+      min_samples_split: [2, 50]
+      min_samples_leaf: [1, 20]
+      max_features: ["sqrt", "log2", null, 0.3, 0.5, 0.7]
+      class_weight: ["balanced", "balanced_subsample", null]
+      criterion: ["gini", "entropy"]
+      ccp_alpha: [0.0, 0.05]
+      max_samples: [0.5, 1.0]
+  
+  # Logistic Regression
+  logistic_regression:
+    enabled: true
+    search_space:
+      - solver: ["liblinear"]
+        penalty: ["l1", "l2"]
+        C: [0.0001, 10000]
+        max_iter: [100, 5000]
+        class_weight: ["balanced", null]
+      - solver: ["lbfgs", "newton-cg"]
+        penalty: ["l2", "none"]
+        C: [0.0001, 10000]
+        max_iter: [100, 5000]
+        class_weight: ["balanced", null]
+  
+  # SPLSDA
+  splsda:
+    enabled: true
+    search_space:
+      n_components: [2, 300]
+      lambda_val: [0.0001, 1.0]
+      max_iter: [100, 3000]
+      tol: [1e-8, 1e-4]
+
+# Training Configuration
+training:
+  # Bayesian optimization
+  n_iter: 100
+  cv_folds: 5
+  scoring_metric: "f1"
+  n_jobs: -1
+  
+  # Bootstrap evaluation
+  n_bootstrap: 1000
+  
+  # Output
+  models_dir: "saved_models"
+  results_dir: "results"
+
+# Feature Importance Configuration
+feature_importance:
+  enabled: true
+  n_permutations: 100
+  batch_size: 50
+  n_jobs: -1
+  
+  # Filtering criteria
+  min_importance: 0.0
+  min_snr: 1.0
+  top_n_features: 20
+
+# Visualization Configuration
+visualization:
+  style: "whitegrid"
+  palette: "husl"
+  figure_size: [10, 6]
+  dpi: 300
+  
+  # Plot settings
+  save_plots: true
+  plot_formats: ["png", "pdf"]
+  
+# Analysis Configuration
+analysis:
+  # Pathway enrichment
+  pathway_enrichment:
+    enabled: true
+    databases:
+      - "DisGeNET"
+      - "Jensen_DISEASES"
+      - "Jensen_COMPARTMENTS"
+      - "OMIM_Disease"
+    
+    # Significance thresholds
+    p_value_threshold: 0.05
+    q_value_threshold: 0.1
+  
+  # Statistical tests
+  statistical_tests:
+    correction_method: "fdr_bh"
+    alpha: 0.05
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "mace_prediction.log"
+
+# Reproducibility
+random_state: 42
+set_random_seeds: true
